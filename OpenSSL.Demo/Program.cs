@@ -61,11 +61,33 @@ extern static SSL_ERROR SSL_get_error(IntPtr ssl, int ret);
 
 [DllImport(SslDllName, CallingConvention = CallingConvention.Cdecl)]
 extern static int SSL_do_handshake(IntPtr ssl);
+
+[DllImport(SslDllName, CallingConvention = CallingConvention.Cdecl)]
+extern static IntPtr ERR_get_error();
+
+[DllImport(SslDllName, CallingConvention = CallingConvention.Cdecl)]
+extern static string ERR_error_string(IntPtr e);
+
+[DllImport(SslDllName, CallingConvention = CallingConvention.Cdecl)]
+extern static int SSL_CTX_set_cipher_list(IntPtr ctx, string cipher_string);
 #endregion
 
 #region OpenSsl constants
 
 const int SSL_CTRL_SET_TLSEXT_HOSTNAME = 55;
+
+string[] DEFAULT_CIPHERS = new string[] {
+        "ECDHE+AESGCM",
+        "ECDHE+CHACHA20",
+        "DHE+AESGCM",
+        "DHE+CHACHA20",
+        "ECDH+AESGCM",
+        "DH+AESGCM",
+        "ECDH+AES",
+        "DH+AES",
+        "RSA+AESGCM",
+        "RSA+AES"
+};
 
 #endregion
 
@@ -111,6 +133,10 @@ Console.WriteLine("Connect response:\r\n" + Encoding.UTF8.GetString(bytes));
 
 IntPtr tlsMethod = TLS_client_method();
 IntPtr sslCtx = SSL_CTX_new(tlsMethod);
+
+// 修改加密套件参数特征
+SSL_CTX_set_cipher_list(sslCtx, string.Join(":", DEFAULT_CIPHERS));
+
 IntPtr ssl = SSL_new(sslCtx);
 int setFdResult = SSL_set_fd(ssl, socket.Handle.ToInt32());
 
